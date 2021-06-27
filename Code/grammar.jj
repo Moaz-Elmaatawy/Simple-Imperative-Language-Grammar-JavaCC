@@ -1,0 +1,101 @@
+
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = true;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+PARSER_BEGIN(grammar)
+package lab1;
+
+import java.io.StringReader;
+public class grammar {
+
+	public static int check=0;
+	public static String input;
+
+	grammar(String s) {
+	  this.input=s;
+	}
+  public static void main(String args[]) throws ParseException {
+  
+		try {
+			StringReader in = new StringReader(input);
+			grammar g=new grammar(in);
+	    	g.Input();
+	    	System.out.println("Syntax is okay");
+	    	check=1;
+	    }
+	    catch(Throwable e) {
+            // Catching Throwable is ugly but JavaCC throws Error objects!
+            System.out.println("Syntax check failed !!");
+        }
+   
+  }
+
+}
+
+PARSER_END(grammar)
+SKIP:  { " " | "\t" | "\n" | "\r"}
+TOKEN :
+{
+  	<DIGIT: ( ["0"-"9"] )>
+| 	<LETTER : ( "a" | "b" | "c" | "d" | "e" | "f" ) > 
+}
+
+/** Root production. */
+void Input() :
+{}
+{
+	 
+	    FullCom()  <EOF>
+}
+
+/** Brace matching production. */
+
+
+
+void Num() :
+{}
+{
+ 	<DIGIT> [ Num() ]
+}
+void Var() :
+{}
+{
+ 	<LETTER> [ Var() ] 
+}
+void AExp() :
+{}
+{
+  (Num() | Var() | "(" AExp() ("+"|"-") AExp() ")" )
+}
+void BExp() :
+{}
+{
+  ( "ff" | "tt" |LOOKAHEAD(2147483647)  "(" AExp() "==" AExp() ")" | "!" BExp() |LOOKAHEAD(2147483647)  "(" BExp() "^" BExp() ")" )
+}
+void Com() :
+{}
+{
+ 	( "skip" | Var() ":="  AExp() | "if" BExp() "then" Com() "else" Com() |"while" BExp() "do" Com() | FullCom())
+}
+void FullCom() :
+{}
+{
+  Com() [ ";" FullCom() ] 
+}
